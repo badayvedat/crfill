@@ -1,8 +1,8 @@
 # crfill
 
-[Usage](#basic-usage) | [Web App](#web-app) | | [Paper](https://arxiv.org/pdf/2011.12836.pdf) | [Supplementary Material](https://maildluteducn-my.sharepoint.com/:b:/g/personal/zengyu_mail_dlut_edu_cn/Eda8Q_v7OSNMj0nr2iG7TmABvxLOtAPwVDdk5mjl7c-IFw?e=Cvki0I) | [More results](viscmp.md) |
+[Usage](#basic-usage) | [Web App](#web-app) | | [Paper](https://arxiv.org/pdf/2011.12836.pdf) | [Supplementary Material]() | [More results](viscmp.md) |
 
-code for paper ``CR-Fill: Generative Image Inpainting with Auxiliary Contextual Reconstruction". This repo (including code and models) are for research purposes only. 
+code for paper. This repo (including code and models) are for research purposes only. 
 
 <img src="https://s3.ax1x.com/2020/11/27/DrVxIO.png" width="160"> <img src="https://s3.ax1x.com/2020/11/27/DrZ9RH.png" width="160"> 
 <img src="https://s3.ax1x.com/2020/11/27/DrZlyn.png" width="160"> <img src="https://s3.ax1x.com/2020/11/27/DrZGwV.png" width="160"> 
@@ -10,92 +10,82 @@ code for paper ``CR-Fill: Generative Image Inpainting with Auxiliary Contextual 
 <img src="https://s3.ax1x.com/2020/11/27/DrZtFU.png" width="360"> <img src="https://s3.ax1x.com/2020/11/27/DrZdSJ.png" width="360"> 
 
 ## Usage
-
-### Dependencies
-0. Download code
+### Basic usage
+0. Download code and model
 ```
 git clone --single-branch https://github.com/zengxianyu/crfill
-git submodule init
-git submodule update
 ```
-
-0. Download data and model
-```
-chmod +x download/*
-./download/download_model.sh
-./download/download_data.sh
-```
+[download model files](https://maildluteducn-my.sharepoint.com/:f:/g/personal/zengyu_mail_dlut_edu_cn/EsCtYO-QzNRKvnpxKq3KeD8B8vCBQXaNEMUEmWlsaLyJSQ?e=9cEfBJ) and put them in the ./files/ directory
 
 1. Install dependencies:
 ```
 conda env create -f environment.yml
 ```
-or install these packages manually in a Python 3.6 enviroment: 
+or manually install these packages in a Python 3.6 enviroment: 
 
-```pytorch=1.3.1, opencv=3.4.2, tqdm, torchvision, dill, matplotlib, opencv```
+```pytorch=1.3.1```, ```opencv=3.4.2```, ```tqdm```
 
 
-### Inference
+2. Use the code:
 
+with GPU:
 ```
-./test.sh
+python test.py --image path/to/images --mask path/to/hole/masks --output path/to/save/results
 ```
-
-These script will run the inpainting model on the samples I provided. Modify the options ```--image_dir, --mask_dir, --output_dir``` in ```test.sh``` to test on custom data. 
-
-### Train
-1. Prepare training datasets and put them in ```./datasets/``` following the example ```./datasets/places```
-
-2. run the training script:
+without GPU:
 ```
-./train.sh
+python test.py --image path/to/images --mask path/to/hole/masks --output path/to/save/results --nogpu
 ```
+```path/to/images``` is the path to the folder of input images; ```path/to/masks``` is the path to the folder of hole masks; ```path/to/save/results``` is where the results will be saved. 
 
-open the html files in ```./output``` to visualize training
+Hole masks are grayscale images where pixel values> 0 indicates the pixel at the corresponding position is missing and will be replaced with generated new content. 
 
-After the training is finished, the model files can be found in ```./checkpoints/debugarr0```
-
-you may modify the training script to use different settings, e.g., batch size, hyperparameters
-
-### Finetune
-For finetune on custom dataset based on my pretrained models, use the following command:
-1. download checkpoints
-```
-./download/download_pretrain.sh
-```
-2. run the training script
-```
-./finetune.sh
-```
-you may change the options in ```finetune.sh``` to use different hyperparameters or your own dataset
-
+:mega: :mega: The white area of a hole mask should fully cover all pixels in the missing regions. :mega: :mega:
 
 ### Web APP
 <img src="https://s3.ax1x.com/2020/11/27/DrVLs1.png" width=300>
-
-To use the web app, these additional packages are required: 
+For your convinience of visualization and evaluation, I provide an inpainting APP where you can interact with the inpainting model in a browser, to open a photo and draw area to remove. To use the web app, these additional packages are required: 
 
 ```flask```, ```requests```, ```pillow```
 
+Then execute the following:
 
+With GPU:
 ```
-./demo.sh
-```
-
-then open http://localhost:2334 in the browser to use the web app
-
-## Citing
-```
-@inproceedings{zeng2021generative,
-  title={CR-Fill: Generative Image Inpainting with Auxiliary Contextual Reconstruction},
-  author={Zeng, Yu and Lin, Zhe and Lu, Huchuan and Patel, Vishal M.},
-  booktitle={Proceedings of the IEEE International Conference on Computer Vision},
-  year={2021}
-}
+cd app
+python hello.py
 ```
 
-## Acknowledgement
+Without GPU:
+```
+cd app
+python hello.py --nogpu
+```
 
-* DeepFill https://github.com/jiahuiyu/generative_inpainting
-* Pix2PixHD https://github.com/NVIDIA/pix2pixHD
-* SPADE https://github.com/NVlabs/SPADE
+After that, open http://localhost:2334 in the browser
+
+### The adjusted model for high-res inpainitng
+To use the adjusted model for high-res inpainting (specifiy the option ```--nogpu``` to run on cpu```):
+```
+python test.py --opt nearestx2 --load ./files/model_near512.pth \
+--image path/to/images \
+--mask path/to/hole/masks \
+--output path/to/save/results \
+```
+
+By default, the Web APP selects from the two models based on the image size. The adjusted model will be used if the short side >= 512. To mannualy specify the model used in the Web APP:
+```
+cd app
+python hello.py --opt nearestx2 --load ./files/model_near512.pth
+```
+or
+```
+cd app
+python hello.py --opt convnet --load ./files/model_256.pth
+```
+
+### Auxiliary network
+The auxiliary network (used during training) is defined in networks/auxiliary.py. The full training code will be released after paper accepted. 
+
+
+
