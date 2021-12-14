@@ -41,7 +41,7 @@ net = net.to(device)
 
 path_in = args.img_dir
 
-with h5py.File(args.output, "a") as out:
+with h5py.File(args.output, "w") as out:
     for img_id in tqdm(scene, desc="processing", total=len(scene)):
         img = scene[img_id]["image"][...]
         img = img[:, :, ::-1].copy()
@@ -65,7 +65,6 @@ with h5py.File(args.output, "a") as out:
         obj_order = [np.string_(masks[i][0]) for i in range(len(masks))]
         obj_order.insert(0, np.string_("base_img"))
 
-        out.create_group(img_id)
         out[img_id].create_dataset("objects_order", data=obj_order[::-1])
         out[img_id].create_group("objects")
         out[img_id]["objects"].create_dataset("base_img", data=img_raw)
