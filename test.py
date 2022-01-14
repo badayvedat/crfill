@@ -65,6 +65,7 @@ with h5py.File(args.output, "w") as out:
         obj_order = [np.string_(masks[i][0]) for i in range(len(masks))]
         obj_order.insert(0, np.string_("base_img"))
 
+        out.create_group(img_id)
         out[img_id].create_dataset("objects_order", data=obj_order[::-1])
         out[img_id].create_group("objects")
         out[img_id]["objects"].create_dataset("base_img", data=img_raw)
@@ -96,5 +97,5 @@ with h5py.File(args.output, "w") as out:
 
             img = torch.Tensor(img.transpose((2, 0, 1)))[None, ...] / 255.0
             img = (img - 0.5) / 0.5
-            
+
 scene.close()
