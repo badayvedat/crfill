@@ -96,3 +96,5 @@ with h5py.File(args.output, "w") as out:
 
             img = torch.Tensor(img.transpose((2, 0, 1)))[None, ...] / 255.0
             img = (img - 0.5) / 0.5
+            
+scene.close()
