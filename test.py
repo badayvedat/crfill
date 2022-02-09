@@ -42,10 +42,9 @@ net = net.to(device)
 path_in = args.img_dir
 
 with h5py.File(args.output, "w") as out:
-    all_keys = list(scene.keys())
-    nonzero_keys = [img_id for img_id in all_keys if len(scene[img_id]["objects"]) > 0]
-
     for img_id in tqdm(nonzero_keys, desc="processing"):
+        if len(scene[img_id]["objects"]) < 1:
+            continue
         img = scene[img_id]["image"][...]
         img = img[:, :, ::-1].copy()
         h_raw, w_raw, _ = img.shape
