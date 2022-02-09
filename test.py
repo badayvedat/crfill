@@ -42,7 +42,7 @@ net = net.to(device)
 path_in = args.img_dir
 
 with h5py.File(args.output, "w") as out:
-    for img_id in tqdm(nonzero_keys, desc="processing"):
+    for img_id in tqdm(scene, desc="processing"):
         if len(scene[img_id]["objects"]) < 1:
             continue
         img = scene[img_id]["image"][...]
