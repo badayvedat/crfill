@@ -10,7 +10,7 @@ import h5py
 parser = argparse.ArgumentParser(description="test script")
 parser.add_argument("--img_dir", default="", type=str)
 parser.add_argument("--dataset", default="", type=str)
-parser.add_argument("--kernel_size", default=3, type=int)
+parser.add_argument("--kernel_size", default=11, type=int)
 parser.add_argument("--output", default="", type=str)
 parser.add_argument("--nogpu", action="store_true")
 parser.add_argument("--opt", default="convnet", type=str)
@@ -58,10 +58,13 @@ with h5py.File(args.output, "w") as out:
         img = (img - 0.5) / 0.5
 
         masks = {}
+        bboxes = {}
         for obj_id in scene[img_id]["objects"]:
             mask = scene[img_id]["objects"][obj_id]["mask"][...]
             dilated_mask = dilate_mask(mask.astype(np.uint8), args.kernel_size)
             masks[obj_id] = cv2.resize(dilated_mask, (w_t, h_t))
+
+            bboxes[obj_id] = scene[img_id]["objects"][obj_id]["bbox"][...]
 
         # Sort masks by mask area
         masks = sorted(masks.items(), key=lambda x: x[1].sum())
@@ -71,10 +74,13 @@ with h5py.File(args.output, "w") as out:
         out.create_group(img_id)
         out[img_id].create_dataset("objects_order", data=obj_order[::-1])
         out[img_id].create_group("objects")
+        out[img_id].create_group("bboxes")
         out[img_id]["objects"].create_dataset("base_img", data=img_raw)
 
         for i in range(len(masks)):
             (obj_id, mask) = masks[i]
+
+            out[img_id]["bboxes"].create_dataset(obj_id, data=bboxes[obj_id])
 
             msk_raw = (mask > 0)[..., None]
             msk = (mask > 0)[..., None]
