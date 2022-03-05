@@ -12,7 +12,6 @@ parser.add_argument("--img_dir", default="", type=str)
 parser.add_argument("--dataset", default="", type=str)
 parser.add_argument("--kernel_size", default=11, type=int)
 parser.add_argument("--output", default="", type=str)
-parser.add_argument("--nogpu", action="store_true")
 parser.add_argument("--opt", default="convnet", type=str)
 parser.add_argument("--load", default="./files/model_256.pth", type=str)
 args = parser.parse_args()
@@ -34,8 +33,7 @@ net = getattr(networks, args.opt).InpaintGenerator()
 net.load_state_dict(torch.load(args.load))
 
 
-use_gpu = not args.nogpu
-device = torch.device("cuda:0") if use_gpu else torch.device("cpu")
+device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 net = net.to(device)
 
@@ -99,7 +97,7 @@ with h5py.File(args.output, "w") as out:
             result = result * msk_raw + img_raw * (1 - msk_raw)
 
             # Copy result to h5 file
-            img = result.copy()
+            img = result.astype('uint8')
             img_raw = result.copy()
             out[img_id]["objects"].create_dataset(obj_id, data=img)
 
